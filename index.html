@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReviewScrap — Import Amazon Reviews to Loox, Okendo & More</title>
+  <meta name="description" content="Extract Amazon product reviews with photos, enhance them with AI, and export to Loox, Okendo, or Excel CSV. 1 credit = 1 review. Start with 20 free credits.">
+  <link rel="icon" type="image/png" href="icon48.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-dark: #3730A3;
+      --primary-light: #EEF2FF;
+      --accent: #10B981;
+      --accent-dark: #059669;
+      --dark: #111827;
+      --gray-700: #374151;
+      --gray-500: #6B7280;
+      --gray-300: #D1D5DB;
+      --gray-100: #F3F4F6;
+      --white: #FFFFFF;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--dark);
+      line-height: 1.6;
+      background: var(--white);
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--gray-100);
+      padding: 0 2rem;
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+      height: 64px;
+    }
+    .logo {
+      font-weight: 800; font-size: 1.4rem;
+      color: var(--primary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .logo img { height: 32px; width: 32px; border-radius: 6px; }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--gray-700); }
+    .nav-links a:hover { color: var(--primary); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 24px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      transition: all 0.2s; cursor: pointer; border: none;
+    }
+    .btn-primary {
+      background: var(--primary); color: var(--white);
+    }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent; color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+    .btn-outline:hover { background: var(--primary-light); }
+    .btn-accent {
+      background: var(--accent); color: var(--white);
+    }
+    .btn-accent:hover { background: var(--accent-dark); transform: translateY(-1px); }
+
+    /* Hero */
+    .hero {
+      padding: 140px 2rem 80px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--white) 50%, #F0FDF4 100%);
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600; font-size: 0.85rem;
+      padding: 6px 16px; border-radius: 50px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(79,70,229,0.2);
+    }
+    .hero h1 {
+      font-size: 3.5rem; font-weight: 800;
+      line-height: 1.1; max-width: 800px; margin: 0 auto 20px;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 span { color: var(--primary); }
+    .hero p {
+      font-size: 1.25rem; color: var(--gray-500);
+      max-width: 600px; margin: 0 auto 40px;
+    }
+    .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero-stats {
+      display: flex; justify-content: center; gap: 48px;
+      margin-top: 60px; flex-wrap: wrap;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .number { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    .hero-stat .label { font-size: 0.85rem; color: var(--gray-500); margin-top: 4px; }
+
+    /* Sections */
+    section { padding: 100px 2rem; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .section-title {
+      text-align: center; max-width: 700px; margin: 0 auto 60px;
+    }
+    .section-title h2 {
+      font-size: 2.5rem; font-weight: 800; margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .section-title p { font-size: 1.1rem; color: var(--gray-500); }
+
+    /* How it works */
+    .how-it-works { background: var(--gray-100); }
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 32px;
+    }
+    .step {
+      background: var(--white); border-radius: 16px;
+      padding: 36px; text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      transition: transform 0.2s;
+    }
+    .step:hover { transform: translateY(-4px); }
+    .step-number {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--primary); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.2rem;
+      margin: 0 auto 20px;
+    }
+    .step h3 { font-size: 1.2rem; margin-bottom: 10px; }
+    .step p { color: var(--gray-500); font-size: 0.95rem; }
+
+    /* Features */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+    .feature {
+      background: var(--gray-100); border-radius: 16px;
+      padding: 32px;
+      transition: transform 0.2s;
+    }
+    .feature:hover { transform: translateY(-3px); }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin-bottom: 16px;
+    }
+    .feature h3 { font-size: 1.15rem; margin-bottom: 8px; }
+    .feature p { color: var(--gray-500); font-size: 0.95rem; }
+
+    /* Platforms */
+    .platforms {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--white);
+    }
+    .platforms .section-title h2 { color: var(--white); }
+    .platforms .section-title p { color: rgba(255,255,255,0.7); }
+    .platform-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .platform-card {
+      background: rgba(255,255,255,0.1); border-radius: 16px;
+      padding: 32px; backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .platform-card h3 {
+      font-size: 1.3rem; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .platform-card p { color: rgba(255,255,255,0.75); font-size: 0.95rem; }
+    .platform-card ul {
+      list-style: none; margin-top: 16px;
+    }
+    .platform-card ul li {
+      padding: 6px 0; color: rgba(255,255,255,0.85);
+      font-size: 0.9rem;
+    }
+    .platform-card ul li::before {
+      content: "\2713"; margin-right: 10px;
+      color: var(--accent); font-weight: 700;
+    }
+
+    /* Pricing */
+    .pricing-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px; max-width: 900px; margin: 0 auto;
+    }
+    .pricing-card {
+      border: 2px solid var(--gray-300); border-radius: 16px;
+      padding: 36px; text-align: center;
+      transition: transform 0.2s;
+    }
+    .pricing-card.popular {
+      border-color: var(--primary);
+      box-shadow: 0 8px 30px rgba(79,70,229,0.15);
+      position: relative;
+    }
+    .pricing-card.popular::before {
+      content: "Most Popular";
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--primary); color: var(--white);
+      padding: 4px 16px; border-radius: 50px;
+      font-size: 0.8rem; font-weight: 600;
+    }
+    .pricing-card:hover { transform: translateY(-4px); }
+    .pricing-card h3 { font-size: 1.3rem; margin-bottom: 8px; }
+    .pricing-card .price {
+      font-size: 3rem; font-weight: 800; margin: 16px 0 8px;
+      color: var(--primary);
+    }
+    .pricing-card .price span { font-size: 1rem; font-weight: 500; color: var(--gray-500); }
+    .pricing-card .desc { color: var(--gray-500); margin-bottom: 24px; font-size: 0.95rem; }
+    .pricing-card ul {
+      list-style: none; text-align: left; margin-bottom: 32px;
+    }
+    .pricing-card ul li {
+      padding: 8px 0; font-size: 0.95rem; color: var(--gray-700);
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .pricing-card ul li::before {
+      content: "\2713"; margin-right: 10px;
+      color: var(--accent); font-weight: 700;
+    }
+    .pricing-card .btn { width: 100%; justify-content: center; }
+
+    /* FAQ */
+    .faq-list { max-width: 700px; margin: 0 auto; }
+    .faq-item {
+      border-bottom: 1px solid var(--gray-300);
+      padding: 24px 0;
+    }
+    .faq-q {
+      font-weight: 600; font-size: 1.05rem; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .faq-q::after { content: "+"; font-size: 1.5rem; color: var(--primary); }
+    .faq-q.open::after { content: "\2212"; }
+    .faq-a {
+      color: var(--gray-500); margin-top: 12px; font-size: 0.95rem;
+      display: none;
+    }
+    .faq-a.open { display: block; }
+
+    /* CTA */
+    .cta {
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary-light) 0%, #F0FDF4 100%);
+    }
+    .cta h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; }
+    .cta p { font-size: 1.1rem; color: var(--gray-500); margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+    /* Footer */
+    footer {
+      padding: 48px 2rem;
+      border-top: 1px solid var(--gray-100);
+      text-align: center;
+      color: var(--gray-500); font-size: 0.9rem;
+    }
+    footer a { color: var(--primary); }
+    .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.2rem; }
+      .hero-stats { gap: 24px; }
+      .nav-links { display: none; }
+      section { padding: 60px 1.5rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .section-title h2 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="logo">
+        <img src="icon48.png" alt="ReviewScrap">
+        ReviewScrap
+      </a>
+      <div class="nav-links">
+        <a href="#how-it-works">How It Works</a>
+        <a href="#features">Features</a>
+        <a href="#platforms">Platforms</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://chromewebstore.google.com/detail/reviewlift/fbpiclilmhpbfhadbhonjndocjkggipj" class="btn btn-primary" target="_blank">Install Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">Chrome Extension &mdash; 20 Free Credits to Start</div>
+    <h1>Import Amazon Reviews<br><span>to Your Store</span> in Seconds</h1>
+    <p>Extract real product reviews with photos from Amazon, enhance them with AI, and export to Loox, Okendo, or Excel CSV. 1 credit per review.</p>
+    <div class="hero-buttons">
+      <a href="https://chromewebstore.google.com/detail/reviewlift/fbpiclilmhpbfhadbhonjndocjkggipj" class="btn btn-primary" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+        Add to Chrome &mdash; 20 Free Credits
+      </a>
+      <a href="#how-it-works" class="btn btn-outline">See How It Works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="number">50+</div>
+        <div class="label">Reviews per scrape</div>
+      </div>
+      <div class="hero-stat">
+        <div class="number">3</div>
+        <div class="label">Export formats</div>
+      </div>
+      <div class="hero-stat">
+        <div class="number">15+</div>
+        <div class="label">Amazon domains</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <div class="section-title">
+        <h2>How It Works</h2>
+        <p>Three simple steps to fill your store with authentic, high-converting reviews.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Visit an Amazon Product</h3>
+          <p>Go to any Amazon product page. ReviewScrap automatically detects the product and is ready to extract reviews.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Configure & Extract</h3>
+          <p>Set the number of reviews, star rating filter, and image priority. Click "Start" and watch the reviews flow in.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Export & Import</h3>
+          <p>Download as Loox CSV, Okendo CSV, or Excel. Upload directly to your review platform and go live.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="container">
+      <div class="section-title">
+        <h2>Powerful Features</h2>
+        <p>Everything you need to build social proof for your e-commerce store.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature">
+          <div class="feature-icon">&#128247;</div>
+          <h3>Photo Review Priority</h3>
+          <p>Automatically finds and extracts reviews with customer photos first, giving your store the most visual, trust-building content.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#9733;</div>
+          <h3>Smart Star Filtering</h3>
+          <p>Set minimum star ratings to only import positive reviews. Filter by 4+ or 5-star reviews to showcase the best feedback.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#129302;</div>
+          <h3>AI Enhancement</h3>
+          <p>Optionally rewrite reviews with AI to improve clarity and professionalism while keeping the authentic customer voice.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#128683;</div>
+          <h3>Brand Name Removal</h3>
+          <p>Automatically strips competitor brand names and Amazon mentions from all reviews, making them ready for your store.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#127760;</div>
+          <h3>15+ Amazon Domains</h3>
+          <p>Works on Amazon US, UK, Canada, Germany, France, Italy, Spain, Japan, Australia, India, Mexico, Brazil, and more.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#128190;</div>
+          <h3>Bulk Image Download</h3>
+          <p>Download all review photos at once as individual files, ready to upload to your product listings or review platform.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platforms -->
+  <section class="platforms" id="platforms">
+    <div class="container">
+      <div class="section-title">
+        <h2>Export to Your Platform</h2>
+        <p>One-click export in the exact CSV format your review platform expects.</p>
+      </div>
+      <div class="platform-cards">
+        <div class="platform-card">
+          <h3>&#11088; Loox</h3>
+          <p>Export reviews with photos in Loox's import format. Includes reviewer name, rating, title, body, image URL, and verified status.</p>
+          <ul>
+            <li>Photo reviews with image URLs</li>
+            <li>Randomized dates within last year</li>
+            <li>Verified buyer status</li>
+            <li>Ready-to-import CSV format</li>
+          </ul>
+        </div>
+        <div class="platform-card">
+          <h3>&#11088; Okendo</h3>
+          <p>Export in Okendo's bulk import format with all required fields mapped automatically.</p>
+          <ul>
+            <li>Complete Okendo CSV structure</li>
+            <li>Product handle mapping</li>
+            <li>Review body and title</li>
+            <li>Star ratings and dates</li>
+          </ul>
+        </div>
+        <div class="platform-card">
+          <h3>&#11088; Excel CSV</h3>
+          <p>Generic CSV export that works with any platform or for your own analysis and records.</p>
+          <ul>
+            <li>All review data included</li>
+            <li>Image URLs preserved</li>
+            <li>Original and AI-enhanced text</li>
+            <li>Open in Excel or Google Sheets</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing">
+    <div class="container">
+      <div class="section-title">
+        <h2>Pay Per Review</h2>
+        <p>1 credit = 1 review. No subscriptions, no monthly fees. Buy credits when you need them.</p>
+      </div>
+      <div class="pricing-cards" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); max-width: 1100px;">
+        <div class="pricing-card">
+          <h3>Starter</h3>
+          <div class="price">Free</div>
+          <div class="desc">20 credits to try it out</div>
+          <ul>
+            <li>20 free credits (20 reviews)</li>
+            <li>Photo review priority</li>
+            <li>Star rating filters</li>
+            <li>Brand name removal</li>
+            <li>Loox, Okendo & Excel export</li>
+            <li>Bulk image download</li>
+          </ul>
+          <a href="https://chromewebstore.google.com/detail/reviewlift/fbpiclilmhpbfhadbhonjndocjkggipj" class="btn btn-outline" target="_blank">Start Free</a>
+        </div>
+        <div class="pricing-card">
+          <h3>100 Credits</h3>
+          <div class="price">$0.50</div>
+          <div class="desc">100 reviews &mdash; $0.005 each</div>
+          <ul>
+            <li>100 review credits</li>
+            <li>All features included</li>
+            <li>AI review enhancement</li>
+            <li>Credits never expire</li>
+          </ul>
+          <a href="https://chromewebstore.google.com/detail/reviewlift/fbpiclilmhpbfhadbhonjndocjkggipj" class="btn btn-outline" target="_blank">Buy Credits</a>
+        </div>
+        <div class="pricing-card popular">
+          <h3>1,000 Credits</h3>
+          <div class="price">$5</div>
+          <div class="desc">Best value &mdash; $0.005 each</div>
+          <ul>
+            <li>1,000 review credits</li>
+            <li>All features included</li>
+            <li>AI review enhancement</li>
+            <li>Credits never expire</li>
+            <li>Priority support</li>
+          </ul>
+          <a href="https://chromewebstore.google.com/detail/reviewlift/fbpiclilmhpbfhadbhonjndocjkggipj" class="btn btn-primary" target="_blank">Buy Credits</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" style="background: var(--gray-100);">
+    <div class="container">
+      <div class="section-title">
+        <h2>Frequently Asked Questions</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q">Is ReviewScrap free to use?</div>
+          <div class="faq-a">Every new user gets 20 free credits (1 credit = 1 review) to try all features. After that, credits are just $0.50 per 100 reviews or $5 per 1,000 reviews. Credits never expire.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Which Amazon sites are supported?</div>
+          <div class="faq-a">ReviewScrap works on 15+ Amazon domains including amazon.com, amazon.co.uk, amazon.ca, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.co.jp, amazon.com.au, amazon.in, amazon.com.br, amazon.com.mx, and more.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Does it extract review photos?</div>
+          <div class="faq-a">Yes! ReviewScrap automatically prioritizes reviews with customer photos. It extracts the actual product images (not avatars or icons) and includes them in your CSV exports and as downloadable files.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Will my brand name appear in the reviews?</div>
+          <div class="faq-a">No. ReviewScrap has a built-in brand name removal feature. Enter the Amazon brand name and it will be automatically stripped from all review text, along with any mentions of "Amazon."</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">How does the Loox/Okendo export work?</div>
+          <div class="faq-a">ReviewScrap generates CSV files in the exact format that Loox and Okendo expect for bulk import. Just download the CSV and upload it directly to your review platform — no manual formatting needed.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Is this safe to use?</div>
+          <div class="faq-a">ReviewScrap runs entirely in your browser. It navigates Amazon pages just like you would and extracts publicly visible review data. No data is sent to external servers unless you opt into AI enhancement.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2>Ready to Boost Your Store?</h2>
+    <p>Join store owners who use ReviewScrap to build social proof and increase conversions.</p>
+    <a href="https://chromewebstore.google.com/detail/reviewlift/fbpiclilmhpbfhadbhonjndocjkggipj" class="btn btn-accent" target="_blank" style="font-size: 1.1rem; padding: 14px 36px;">
+      Install ReviewScrap &mdash; 20 Free Credits
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="mailto:support@reviewscrap.com">Contact</a>
+    </div>
+    <p>&copy; 2026 ReviewScrap. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // FAQ toggle
+    document.querySelectorAll('.faq-q').forEach(q => {
+      q.addEventListener('click', () => {
+        q.classList.toggle('open');
+        q.nextElementSibling.classList.toggle('open');
+      });
+    });
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+</html>
